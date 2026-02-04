@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Score Remi - RT Baru</title>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+
+    body{
+      background:#0f172a;
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .container{width:100%;max-width:720px;}
+
+    .card{
+      background:#1e293b;
+      padding:20px;
+      border-radius:18px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.45);
+    }
+
+    h1{text-align:center;margin-bottom:18px}
+    h2{margin-top:18px;margin-bottom:10px}
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    input{
+      padding:12px;
+      border-radius:12px;
+      border:none;
+      outline:none;
+      font-size:14px;
+    }
+
+    input[type="file"]{
+      padding:10px;
+      background:rgba(255,255,255,0.08);
+      color:#fff;
+    }
+
+    .btn{
+      width:100%;
+      margin-top:14px;
+      padding:12px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      transition:.2s;
+      font-size:15px;
+      color:#fff;
+    }
+    .btn:hover{transform:scale(1.02)}
+    .btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .hidden{display:none}
+
+    .players{display:grid;gap:10px;}
+
+    .playerCard{
+      background:rgba(255,255,255,0.08);
+      padding:14px;
+      border-radius:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .playerLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .avatar{
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      object-fit:cover;
+      border:2px solid rgba(255,255,255,0.25);
+      flex-shrink:0;
+      background:rgba(255,255,255,0.12);
+    }
+
+    .playerName{
+      font-weight:900;
+      font-size:1.05rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:260px;
+    }
+
+    .playerScore{
+      font-weight:700;
+      opacity:0.95;
+      white-space:nowrap;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    /* =========================
+       POPUP RT BARU
+       ========================= */
+    .popup{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.78);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:18px;
+      z-index:9999999;
+      backdrop-filter:blur(7px);
+      color:#fff;
+    }
+
+    .popup.hidden{display:none !important}
+
+    .popupContent{
+      width:100%;
+      max-width:620px;
+      border-radius:26px;
+      padding:28px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+
+      background:linear-gradient(135deg,#1e293b,#0b1224);
+      border:2px solid rgba(255,255,255,0.15);
+      box-shadow:0 25px 90px rgba(0,0,0,0.75);
+
+      animation:popIn .35s ease-out;
+    }
+
+    .popupContent::before{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background:radial-gradient(circle, rgba(255,255,255,0.14) 1px, transparent 1px);
+      background-size:24px 24px;
+      opacity:0.28;
+      transform:rotate(12deg);
+      pointer-events:none;
+    }
+
+    .bigTitle{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+
+      font-weight:900;
+      margin-bottom:12px;
+      text-shadow:0 8px 25px rgba(0,0,0,0.35);
+
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height:1;
+      padding: 0 12px;
+    }
+
+    .popupAvatar{
+      width:110px;
+      height:110px;
+      border-radius:50%;
+      object-fit:cover;
+      border:4px solid rgba(255,255,255,0.2);
+      box-shadow:0 12px 35px rgba(0,0,0,0.45);
+      margin:14px auto 8px;
+      display:block;
+      background:rgba(255,255,255,0.12);
+    }
+
+    .winnerName{
+      font-size:3rem;
+      font-weight:1000;
+      letter-spacing:1px;
+      color:#fbbf24;
+      text-shadow:0 10px 35px rgba(251,191,36,0.35);
+      margin:10px 0 4px;
+    }
+
+    .rtBaru{
+      font-size:2.2rem;
+      font-weight:1000;
+      color:#22c55e;
+      text-shadow:0 10px 30px rgba(34,197,94,0.25);
+      margin-bottom:16px;
+    }
+
+    .miniText{opacity:0.9;margin-bottom:14px;}
+
+    #closePopupBtn{
+      width:100%;
+      padding:14px;
+      border-radius:16px;
+      border:none;
+      cursor:pointer;
+      font-weight:900;
+      font-size:1rem;
+      background:linear-gradient(135deg,#60a5fa,#2563eb);
+      transition:.2s;
+      color:#fff;
+    }
+    #closePopupBtn:hover{transform:scale(1.03)}
+
+    @keyframes popIn{
+      0%{transform:scale(0.65) translateY(25px);opacity:0}
+      100%{transform:scale(1) translateY(0);opacity:1}
+    }
+
+    /* CANVAS PETASAN */
+    #fireworkCanvas{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      z-index:9999998;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- SETUP -->
+    <div id="setup" class="card">
+      <h1>Input Nama + Foto Pemain</h1>
+
+      <div class="grid2">
+        <input type="text" id="p1" placeholder="Nama Pemain 1">
+        <input type="file" id="f1" accept="image/*">
+
+        <input type="text" id="p2" placeholder="Nama Pemain 2">
+        <input type="file" id="f2" accept="image/*">
+
+        <input type="text" id="p3" placeholder="Nama Pemain 3">
+        <input type="file" id="f3" accept="image/*">
+
+        <input type="text" id="p4" placeholder="Nama Pemain 4">
+        <input type="file" id="f4" accept="image/*">
+      </div>
+
+      <button id="startBtn" class="btn">Mulai Game</button>
+    </div>
+
+    <!-- GAME -->
+    <div id="game" class="card hidden">
+      <h1>Score Remi</h1>
+
+      <div id="players" class="players"></div>
+
+      <h2>Input Score Ronde</h2>
+      <div class="grid2">
+        <input type="number" id="s1" placeholder="Score Pemain 1">
+        <input type="number" id="s2" placeholder="Score Pemain 2">
+        <input type="number" id="s3" placeholder="Score Pemain 3">
+        <input type="number" id="s4" placeholder="Score Pemain 4">
+      </div>
+
+      <div class="actions">
+        <button id="addRoundBtn" class="btn">Masukan Poin</button>
+        <button id="resetBtn" class="btn danger">Reset</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popupContent">
+      <div class="bigTitle">
+        <span class="emoji">🎉</span>
+        <span class="titleText">SELAMAT KAMU MENJADI RT BARU</span>
+        <span class="emoji">🎉</span>
+      </div>
+
+      <img id="popupAvatar" class="popupAvatar" src="" alt="Foto pemain">
+
+      <div id="winnerName" class="winnerName">Nama</div>
+      <div class="rtBaru">RT BARU KITA</div>
+
+      <div class="miniText">Warga siap setor iuran ya 😭🤣</div>
+
+      <button id="closePopupBtn">Tutup</button>
+    </div>
+  </div>
+
+  <canvas id="fireworkCanvas"></canvas>
+
+  <script>
+    // === AMBIL ELEMENT ===
+    const setupDiv = document.getElementById("setup");
+    const gameDiv = document.getElementById("game");
+    const playersDiv = document.getElementById("players");
+
+    const startBtn = document.getElementById("startBtn");
+    const addRoundBtn = document.getElementById("addRoundBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const popup = document.getElementById("popup");
+    const winnerNameText = document.getElementById("winnerName");
+    const popupAvatar = document.getElementById("popupAvatar");
+    const closePopupBtn = document.getElementById("closePopupBtn");
+
+    // === DATA ===
+    let players = []; // {name, photo}
+    let scores = [0, 0, 0, 0];
+    const LOSE_LIMIT = -500;
+    let gameOver = false;
+
+    const defaultAvatar = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+        <rect width="100%" height="100%" fill="#334155"/>
+        <circle cx="100" cy="78" r="36" fill="#94a3b8"/>
+        <rect x="44" y="122" width="112" height="56" rx="28" fill="#94a3b8"/>
+      </svg>
+    `);
+
+    function fileToDataURL(file){
+      return new Promise((resolve) => {
+        if(!file) return resolve(defaultAvatar);
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ✅ Placeholder input score ikut nama pemain
+    function updateScoreInputPlaceholders(){
+      for(let i=0;i<players.length;i++){
+        const input = document.getElementById("s" + (i+1));
+        if(input){
+          input.placeholder = "Score " + players[i].name;
+        }
+      }
+    }
+
+    // ✅ Render pemain urut berdasarkan poin
+    function renderPlayers() {
+      playersDiv.innerHTML = "";
+
+      const combined = players.map((p, i) => ({
+        player: p,
+        score: scores[i],
+        index: i
+      }));
+
+      // urut score besar ke kecil
+      combined.sort((a, b) => b.score - a.score);
+
+      combined.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "playerCard";
+
+        const left = document.createElement("div");
+        left.className = "playerLeft";
+
+        const img = document.createElement("img");
+        img.className = "avatar";
+        img.src = item.player.photo || defaultAvatar;
+        img.alt = item.player.name;
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "playerName";
+        nameDiv.textContent = item.player.name;
+
+        left.appendChild(img);
+        left.appendChild(nameDiv);
+
+        const scoreDiv = document.createElement("div");
+        scoreDiv.className = "playerScore";
+        scoreDiv.innerHTML = 'Score: <span id="score-' + item.index + '">' + item.score + '</span>';
+
+        card.appendChild(left);
+        card.appendChild(scoreDiv);
+        playersDiv.appendChild(card);
+      });
+    }
+
+    function updateScoresUI() {
+      scores.forEach((score, i) => {
+        const el = document.getElementById("score-" + i);
+        if (el) el.textContent = score;
+      });
+    }
+
+    // ==========================
+    // PETASAN / FIREWORK EFFECT 🎆
+    // ==========================
+    const canvas = document.getElementById("fireworkCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let particles = [];
+    let animId = null;
+    let fireworkRunning = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function spawnFirework(x, y) {
+      const count = 80;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 2;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: Math.random() * 60 + 40,
+          size: Math.random() * 3 + 2,
+          hue: Math.random() * 360
+        });
+      }
+    }
+
+    function drawFireworks() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.fillStyle = "hsla(" + p.hue + ", 95%, 60%, " + (p.life/100) + ")";
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.vy += 0.05;
+        p.life -= 1;
+      });
+
+      particles = particles.filter(p => p.life > 0);
+
+      if (fireworkRunning) {
+        animId = requestAnimationFrame(drawFireworks);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function startFireworks() {
+      fireworkRunning = true;
+      cancelAnimationFrame(animId);
+
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          spawnFirework(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height * 0.6 + 50
+          );
+        }, i * 180);
+      }
+
+      drawFireworks();
+    }
+
+    function stopFireworks() {
+      fireworkRunning = false;
+      particles = [];
+      cancelAnimationFrame(animId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // === POPUP ===
+    function showLoserPopup(playerObj) {
+      winnerNameText.textContent = playerObj.name;
+      popupAvatar.src = playerObj.photo || defaultAvatar;
+
+      popup.classList.remove("hidden");
+      startFireworks();
+    }
+
+    function checkLoser() {
+      const cleanScores = scores.map(s => Number(s) || 0);
+      const minScore = Math.min(...cleanScores);
+
+      if (minScore > LOSE_LIMIT) return false;
+
+      const loserIndex = cleanScores.indexOf(minScore);
+
+      if (!gameOver) {
+        gameOver = true;
+        showLoserPopup(players[loserIndex]);
+      }
+
+      return true;
+    }
+
+    // === RESET GAME ===
+    function resetGame() {
+      players = [];
+      scores = [0, 0, 0, 0];
+      gameOver = false;
+
+      document.getElementById("p1").value = "";
+      document.getElementById("p2").value = "";
+      document.getElementById("p3").value = "";
+      document.getElementById("p4").value = "";
+
+      document.getElementById("f1").value = "";
+      document.getElementById("f2").value = "";
+      document.getElementById("f3").value = "";
+      document.getElementById("f4").value = "";
+
+      document.getElementById("s1").value = "";
+      document.getElementById("s2").value = "";
+      document.getElementById("s3").value = "";
+      document.getElementById("s4").value = "";
+
+      popup.classList.add("hidden");
+      stopFireworks();
+
+      gameDiv.classList.add("hidden");
+      setupDiv.classList.remove("hidden");
+    }
+
+    // === EVENT: MULAI GAME ===
+    startBtn.addEventListener("click", async () => {
+      const p1 = document.getElementById("p1").value.trim() || "Pemain 1";
+      const p2 = document.getElementById("p2").value.trim() || "Pemain 2";
+      const p3 = document.getElementById("p3").value.trim() || "Pemain 3";
+      const p4 = document.getElementById("p4").value.trim() || "Pemain 4";
+
+      const f1 = document.getElementById("f1").files[0];
+      const f2 = document.getElementById("f2").files[0];
+      const f3 = document.getElementById("f3").files[0];
+      const f4 = document.getElementById("f4").files[0];
+
+      players = [
+        { name: p1, photo: await fileToDataURL(f1) },
+        { name: p2, photo: await fileToDataURL(f2) },
+        { name: p3, photo: await fileToDataURL(f3) },
+        { name: p4, photo: await fileToDataURL(f4) },
+      ];
+
+      scores = [0, 0, 0, 0];
+      gameOver = false;
+
+      renderPlayers();
+      updateScoreInputPlaceholders(); // ✅ placeholder ikut nama pemain
+
+      setupDiv.classList.add("hidden");
+      gameDiv.classList.remove("hidden");
+    });
+
+    // === EVENT: TAMBAH RONDE ===
+    addRoundBtn.addEventListener("click", () => {
+      if (gameOver) return;
+
+      const roundScores = [
+        parseInt(document.getElementById("s1").value) || 0,
+        parseInt(document.getElementById("s2").value) || 0,
+        parseInt(document.getElementById("s3").value) || 0,
+        parseInt(document.getElementById("s4").value) || 0
+      ];
+
+      scores = scores.map((val, i) => val + roundScores[i]);
+
+      updateScoresUI();
+      renderPlayers(); // ✅ urut ulang setelah score berubah
+
+      document.getElementById("s1").value = "";
+      document.getElementById("s2").value = "";
+      document.getElementById("s3").value = "";
+      document.getElementById("s4").value = "";
+
+      checkLoser();
+    });
+
+    // === EVENT: RESET ===
+    resetBtn.addEventListener("click", () => {
+      if (confirm("Yakin reset game?")) resetGame();
+    });
+
+    // === EVENT: TUTUP POPUP ===
+    closePopupBtn.addEventListener("click", () => {
+      popup.classList.add("hidden");
+      stopFireworks();
+    });
+  </script>
+
+</body>
+</html>
